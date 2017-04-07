@@ -60,67 +60,145 @@ int main(int argc,char *argv[])
 
 		switch(type) {
 			case 0x0800:
-				printf("IPV4 ");
+				printf(">IPV4");
 
 				//14 Verção
-				print("VERÇÃO: %i ", buff1[14] >> 4);
+				printf("\n -VERÇÃO: %i ", buff1[14] >> 4);
 
 				//15 IHL
 				int ipIHL = buff1[14] & 0x0F;
-				print("IHL: %i ", buff1[14] & 0x0F);
+				printf("\n -IHL: %i ", buff1[14] & 0x0F);
 
 				int ipType = buff1[15];
-				print("TIPO %i ", ipType);
+				printf("\n -TIPO: %i ", ipType);
 
 				int ipLenght = (buff1[16] << 8) | buff1[17];
-				print("TAMANHO: %i ", ipLenght);
+				printf("\n -TAMANHO: %i ", ipLenght);
 
 				int ipIdentification = (buff1[18] << 8) | buff1[19];
-				print("IDENTIFICAÇÃO: %i ", ipIdentification);
+				printf("\n -IDENTIFICAÇÃO: %i ", ipIdentification);
 
 				int ipFlag = buff1[20] >> 5;
-				print("FLAG: %i ", ipFlag);
+				printf("\n -FLAG: %i ", ipFlag);
 
 				int ipFlagOffset = (buff1[20] & 0x1F) << 8 | buff1[21];
-				print("FLAG OFFSET: %i ", ipFlagOffset);
+				printf("\n -FLAG OFFSET: %i ", ipFlagOffset);
 
-				print("TTL: %i ", buff1[22]);
+				printf("\n -TTL: %i ", buff1[22]);
 
-				print("PROTOCOL: %i ", buff1[23]);
+				int ipProtocol = buff1[23];
+				printf("\n -PROTOCOL: %i ", buff1[23]);
 
 				int ipHeaderChecksum = (buff1[24] << 8) | buff1[25];
-				print("CHECKSUM: %i ", ipHeaderChecksum);
+				printf("\n -CHECKSUM: %i ", ipHeaderChecksum);
 
-				print("IP ORIGEM: %i.%i.%i.%i ", buff1[26],buff1[27],buff1[28],buff1[29]);
-				print("IP DESTINO: %i.%i.%i.%i ", buff1[30],buff1[31],buff1[32],buff1[33]);
+				printf("\n -IP ORIGEM: %i.%i.%i.%i ", buff1[26],buff1[27],buff1[28],buff1[29]);
+				printf("\n -IP DESTINO: %i.%i.%i.%i ", buff1[30],buff1[31],buff1[32],buff1[33]);
 
 				if (ipIHL != 5) {
-					print("OPTIONS");		
+					printf("\n -HAS OPTIONS");		
 				}
-				print("\n");
+				printf("\n");
 
-				switch(ipType){
+				switch(ipProtocol){
 					case 1: 
-					printf("ICMP ");
-					int icmpInit = 14 + ipLenght;
+						printf("\n  >ICMP #########################################################################################################");
+						//TAMANHO CABECALHO ETHERNET + CABECALHO IP
+						int icmpInit = 14 + (ipIHL * 4);
 
-					printf("TIPO: %i ", buff1[icmpInit]);
+						printf("\n  -TIPO: %i", buff1[icmpInit]);
 
-					printf("CODIGO: %i ", buff1[icmpInit + 1]);
+						printf("\n  -CODIGO: %i", buff1[icmpInit + 1]);
 
-					int icmpChecksum = (buff1[icmpInit + 2] << 8) | buff1[icmpInit + 3];
-					printf("CHECKSUM: %i ", icmpChecksum);
-					printf("\n");
+						int icmpChecksum = (buff1[icmpInit + 2] << 8) | buff1[icmpInit + 3];
+						printf("\n  -CHECKSUM: %i", icmpChecksum);
+						printf("\n");
+						break;
+					case 6:
+						printf("\n  >TCP #########################################################################################################");
+						int tcpInit = 14 + (ipIHL * 4);
+
+						int tcpSourcePort = (buff1[tcpInit] << 8) | buff1[tcpInit + 1];
+						printf("\n  -SOURCE PORT: %i", tcpSourcePort);
+
+						int tcpDestinationPort = (buff1[tcpInit + 2] << 8) | buff1[tcpInit + 3];
+						printf("\n  -SOURCE PORT: %i", tcpSourcePort);
+
+						long tcpSequenceNumber = (buff1[tcpInit + 4] << 24) | (buff1[tcpInit + 5] << 16) | (buff1[tcpInit + 6] << 8) | buff1[tcpInit + 7];
+						printf("\n  -NUMERO DE SEQUENCIA: %ld", tcpSequenceNumber);
+
+						long tcpAcknowledgeNumber = (buff1[tcpInit + 8] << 24) | (buff1[tcpInit + 9] << 16) | (buff1[tcpInit + 10] << 8) | buff1[tcpInit + 11];
+						printf("\n  -NUMERO DO CONHECIMENTO: %ld", tcpAcknowledgeNumber);
+
+						printf("\n  -OFFSET: %i ", buff1[tcpInit + 12] >> 4);
+
+						printf("\n  -RESERVADO: %i ", buff1[tcpInit + 12] & 0x0F);
+
+						printf("\n  -FLAGS: %i ", buff1[tcpInit + 13]);
+
+						int tcpWindow = (buff1[tcpInit + 13] << 8) | buff1[tcpInit + 14];
+						printf("\n  -WINDOW: %i", tcpWindow);
+
+						int tcpChecksun = (buff1[tcpInit + 15] << 8) | buff1[tcpInit + 16];
+						printf("\n  -CHECKSUN: %i", tcpChecksun);
+
+						int tcpUrgentPointer = (buff1[tcpInit + 17] << 8) | buff1[tcpInit + 18];
+						printf("\n  -URGENT POINTER: %i", tcpUrgentPointer);
+
+						printf("\n");
+						break;
+
+					case 17:
+						printf("\n  >UDP #########################################################################################################");
+						int udpInit = 14 + (ipIHL * 4);
+
+						int udpSourcePort =  (buff1[udpInit] << 8) | buff1[udpInit + 1];
+						printf("\n  -SOURCE PORT: %i", udpSourcePort);
+
+						int udpDestinationPort = (buff1[udpInit + 2] << 8) | buff1[udpInit + 3];
+						printf("\n  -DESTINATION PORT: %i", udpDestinationPort);
+
+						int updLenght = (buff1[udpInit + 4] << 8) | buff1[udpInit + 5];
+						printf("\n  -TAMANHO: %i", updLenght);
+
+						int updChecksun = (buff1[udpInit + 6] << 8) | buff1[udpInit + 7];
+						printf("\n  -CHECKSUN: %i", updChecksun);
+						printf("\n");
+						break;
 				}
 
 				printf("\n");
 				break;	
 			case 0x0806:
-				print("ARP\n");
+				printf(">ARP ");
+				//14 Primeiro
+				int aprHardwareAddressType = (buff1[14] << 8) | buff1[15];
+				printf("\n -TIPO DE ENTEDECO DE HARDWARE: %i", aprHardwareAddressType);
+
+				int aprProtocolAddressType = (buff1[16] << 8) | buff1[17];
+				printf("\n -TIPO DE ENDERECO DE PROTOCOLO: %i", aprProtocolAddressType);
+
+				printf("\n -TAMANHO DO ENDERECO DE HARDWARE: %i", buff1[18]);
+
+				printf("\n -TAMANHO DO ENDERECO DE PROTOCOLO: %i", buff1[19]);
+
+				int aprOperation = (buff1[20] << 8) | buff1[21];
+				printf("\n -OPERACAO: %i", aprOperation);
+
+				printf("\n -ENDEREDO DE HARDWARE DA ORIGEM: %x:%x:%x:%x:%x:%x", buff1[22],buff1[23],buff1[24],buff1[25],buff1[26],buff1[27]);
+
+				printf("\n -ENDERECO DE PROTOCOLO DE ORIGEM: %i.%i.%i.%i ", buff1[28],buff1[29],buff1[30],buff1[31]);
+				
+				printf("\n -ENDEREDO DE HARDWARE DO DESTINO: %x:%x:%x:%x:%x:%x", buff1[32],buff1[33],buff1[34],buff1[35],buff1[36],buff1[37]);
+
+				printf("\n -ENDERECO DE PROTOCOLO DE DESTINO: %i.%i.%i.%i ", buff1[38],buff1[39],buff1[40],buff1[41]);
+
+				printf("\n");
 				break;
 			case 0x86DD:
-				print("IPV6\n");
+				printf("IPV6\n");
 				break;
 		}
+		printf("\n");
 	}
 }
