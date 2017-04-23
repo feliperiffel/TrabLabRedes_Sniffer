@@ -63,7 +63,7 @@ int main(int argc,char *argv[])
 				printf(">IPV4");
 
 				//14 Verção
-				printf("\n -VERÇÃO: %i ", buff1[14] >> 4);
+				printf("\n -VERSÃO: %i ", buff1[14] >> 4);
 
 				//15 IHL
 				int ipIHL = buff1[14] & 0x0F;
@@ -173,7 +173,7 @@ int main(int argc,char *argv[])
 				printf(">ARP ");
 				//14 Primeiro
 				int aprHardwareAddressType = (buff1[14] << 8) | buff1[15];
-				printf("\n -TIPO DE ENTEDECO DE HARDWARE: %i", aprHardwareAddressType);
+				printf("\n -TIPO DE ENDERECO DE HARDWARE: %i", aprHardwareAddressType);
 
 				int aprProtocolAddressType = (buff1[16] << 8) | buff1[17];
 				printf("\n -TIPO DE ENDERECO DE PROTOCOLO: %i", aprProtocolAddressType);
@@ -185,18 +185,132 @@ int main(int argc,char *argv[])
 				int aprOperation = (buff1[20] << 8) | buff1[21];
 				printf("\n -OPERACAO: %i", aprOperation);
 
-				printf("\n -ENDEREDO DE HARDWARE DA ORIGEM: %x:%x:%x:%x:%x:%x", buff1[22],buff1[23],buff1[24],buff1[25],buff1[26],buff1[27]);
+				printf("\n -ENDERECO DE HARDWARE DA ORIGEM: %x:%x:%x:%x:%x:%x", buff1[22],buff1[23],buff1[24],buff1[25],buff1[26],buff1[27]);
 
 				printf("\n -ENDERECO DE PROTOCOLO DE ORIGEM: %i.%i.%i.%i ", buff1[28],buff1[29],buff1[30],buff1[31]);
 				
-				printf("\n -ENDEREDO DE HARDWARE DO DESTINO: %x:%x:%x:%x:%x:%x", buff1[32],buff1[33],buff1[34],buff1[35],buff1[36],buff1[37]);
+				printf("\n -ENDERECO DE HARDWARE DO DESTINO: %x:%x:%x:%x:%x:%x", buff1[32],buff1[33],buff1[34],buff1[35],buff1[36],buff1[37]);
 
 				printf("\n -ENDERECO DE PROTOCOLO DE DESTINO: %i.%i.%i.%i ", buff1[38],buff1[39],buff1[40],buff1[41]);
 
 				printf("\n");
 				break;
 			case 0x86DD:
-				printf("IPV6\n");
+				printf("IPV6");
+
+				printf("\n VERSION: %i", buff1[14] >> 4);
+
+				//Pode haver erro na linha abaixo
+				int ipv6TrafficClass = (((buff1[14] & 0x0F) << 4) | (buff1[15] >> 4));
+				printf("\n TRAFFIC CLASS: %i", ipv6TrafficClass);
+
+				int ipv6FlowLabel = ( ((buff1[15] & 0x0F) << 16) | (buff1[16] << 8) | buff1[17] );
+				printf("\n FLOW LABEL: %i", ipv6FlowLabel);
+				
+				int ipv6PayloadLength = ( (buff1[18] << 8) | (buff1[19]) );
+				printf("\n PAYLOAD LENGTH: %i", ipv6PayloadLength);
+				
+				int ipv6NextHeader = (buff1[20]);
+				switch(ipv6NextHeader){
+					case 6:
+						printf("\n NEXT HEADER: %i (TCP)", ipv6NextHeader);
+						break;
+
+					case 17:
+						printf("\n NEXT HEADER: %i (UDP)", ipv6NextHeader);
+						break;
+
+					case 58:
+						printf("\n NEXT HEADER: %i (ICMPv6) #################\n", ipv6NextHeader);
+						
+						int icmpv6Type = buff1[54];
+						printf("\n ICMPv6 TYPE: %i", icmpv6Type);
+						
+						int icmpv6Code = buff1[55];
+						printf("\n ICMPv6 CODE: %i", icmpv6Code);
+						
+						int icmpv6CheckSum = (buff1[56] << 8) | buff1[57];
+						printf("\n CHECKSUM: %i", icmpv6CheckSum);
+						
+						switch(icmpv6Type){
+							case 1:
+								switch(icmpv6Code){
+									case 0:
+										printf("\n no route to destination");
+										break;
+
+									case 1:
+										printf("\n communication administratively prohibited");
+										break;
+
+									case 2:
+										printf("\n (not assigned)");
+										break;
+
+									case 3:
+										printf("\n address unreachable");
+										break;
+
+									case 4:
+										printf("\n port unreachable");
+										break;
+								}
+								break;
+
+							case 2:
+								printf("\n packet too big message");
+								break;
+
+							case 3:
+								switch(icmpv6Code){
+									case 0:
+										printf("\n hop limit sxceeded in transit");
+										break;
+
+									case 1:
+										printf("\n fragment reassembly time exceeded");
+										break;
+								}
+								break;
+
+							case 4:
+								switch(icmpv6Code){
+									case 0:
+										printf("\n erroneous header field encountered");
+										break;
+
+									case 1:
+										printf("\n unrecognized 'Next Header' type encountered");
+										break;
+
+									case 2:
+										printf("\n unrecognized IPv6 option encountered");
+										break;
+								}
+								break;
+
+							case 128:
+								printf("\n echo request");
+								break;
+
+							case 129:
+								printf("\n echo reply");
+								break;
+						}
+						
+						break;
+				}
+
+				int ipv6HopLimit = (buff1[21]);
+				printf("\n HOP LIMIT: %i", ipv6HopLimit);
+
+				printf("\n SOURCE ADDRESS: %x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x",
+					buff1[22],buff1[23],buff1[24],buff1[25],buff1[26],buff1[27],buff1[28],buff1[29],
+					buff1[30],buff1[31],buff1[32],buff1[33],buff1[34],buff1[35],buff1[36],buff1[37]);
+				
+				printf("\n DESTINATION ADDRESS: %x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x",
+					buff1[38],buff1[39],buff1[40],buff1[41],buff1[42],buff1[43],buff1[44],buff1[45],
+					buff1[46],buff1[47],buff1[48],buff1[49],buff1[50],buff1[51],buff1[52],buff1[53]);
 				break;
 		}
 		printf("\n");
