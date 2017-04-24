@@ -30,6 +30,16 @@
   int sockd;
   int on;
   struct ifreq ifr;
+  
+  int totalPackets = 0;
+  int arpPackets, ipv4Packets, ipv6Packets, icmpPackets, icmpv6Packets, tcpPackets, udpPackets;
+  //Criar uma struct para guardar um ip e a quantidade de vezes que o mesmo transmitiu/recebeu
+  //Criar um array dessas structs para poder fazer a comparação das quantidades
+  struct ipTran {
+	char ip[];
+	int qtd;
+  }
+  struct ipTran endIpMaisTran[];
 
 int main(int argc,char *argv[])
 {
@@ -52,7 +62,8 @@ int main(int argc,char *argv[])
 	// recepcao de pacotes
 	while (1) {
    		recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
-		// impress�o do conteudo - exemplo Endereco Destino e Endereco Origem
+		totalPackets += 1;
+		// impress?o do conteudo - exemplo Endereco Destino e Endereco Origem
 		printf("MAC Destino: %x:%x:%x:%x:%x:%x \n", buff1[0],buff1[1],buff1[2],buff1[3],buff1[4],buff1[5]);
 		printf("MAC Origem:  %x:%x:%x:%x:%x:%x \n", buff1[6],buff1[7],buff1[8],buff1[9],buff1[10],buff1[11]);
         int type = (buff1[12] << 8) | buff1[13];
@@ -60,6 +71,7 @@ int main(int argc,char *argv[])
 
 		switch(type) {
 			case 0x0800:
+				ipv4Packets++;
 				printf(">IPV4");
 
 				//14 Verção
@@ -102,6 +114,7 @@ int main(int argc,char *argv[])
 
 				switch(ipProtocol){
 					case 1: 
+						icmpPackets++;
 						printf("\n  >ICMP #########################################################################################################");
 						//TAMANHO CABECALHO ETHERNET + CABECALHO IP
 						int icmpInit = 14 + (ipIHL * 4);
@@ -115,6 +128,7 @@ int main(int argc,char *argv[])
 						printf("\n");
 						break;
 					case 6:
+						tcpPackets++;
 						printf("\n  >TCP #########################################################################################################");
 						int tcpInit = 14 + (ipIHL * 4);
 
@@ -149,6 +163,7 @@ int main(int argc,char *argv[])
 						break;
 
 					case 17:
+						udpPackets++;
 						printf("\n  >UDP #########################################################################################################");
 						int udpInit = 14 + (ipIHL * 4);
 
@@ -170,6 +185,7 @@ int main(int argc,char *argv[])
 				printf("\n");
 				break;	
 			case 0x0806:
+			arpPackets++;
 				printf(">ARP ");
 				//14 Primeiro
 				int aprHardwareAddressType = (buff1[14] << 8) | buff1[15];
@@ -196,11 +212,11 @@ int main(int argc,char *argv[])
 				printf("\n");
 				break;
 			case 0x86DD:
+				ipv6Packets++;
 				printf("IPV6");
 
 				printf("\n VERSION: %i", buff1[14] >> 4);
-
-				//Pode haver erro na linha abaixo
+				
 				int ipv6TrafficClass = (((buff1[14] & 0x0F) << 4) | (buff1[15] >> 4));
 				printf("\n TRAFFIC CLASS: %i", ipv6TrafficClass);
 
@@ -213,14 +229,17 @@ int main(int argc,char *argv[])
 				int ipv6NextHeader = (buff1[20]);
 				switch(ipv6NextHeader){
 					case 6:
+						tcpPackets++;
 						printf("\n NEXT HEADER: %i (TCP)", ipv6NextHeader);
 						break;
 
 					case 17:
+						udpPackets++;
 						printf("\n NEXT HEADER: %i (UDP)", ipv6NextHeader);
 						break;
 
 					case 58:
+						icmpv6Packets++;
 						printf("\n NEXT HEADER: %i (ICMPv6) #################\n", ipv6NextHeader);
 						
 						int icmpv6Type = buff1[54];
@@ -313,6 +332,14 @@ int main(int argc,char *argv[])
 					buff1[46],buff1[47],buff1[48],buff1[49],buff1[50],buff1[51],buff1[52],buff1[53]);
 				break;
 		}
+		printf("\n Total de Pacotes: %i", totalPackets);
+		printf("\n Pacotes ARP: %i%"	, (arpPackets 	* 100)/totalPackets );
+		printf("\n Pacotes IPv4: %i%"	, (ipv4Packets 	* 100)/totalPackets );
+		printf("\n Pacotes IPv6: %i%"	, (ipv6Packets 	* 100)/totalPackets );
+		printf("\n Pacotes ICMP: %i%"	, (icmpPackets 	* 100)/totalPackets );
+		printf("\n Pacotes ICMPv6: %i%"	, (icmpv6Packets * 100)/totalPackets );
+		printf("\n Pacotes TCP: %i%"	, (tcpPackets 	* 100)/totalPackets );
+		printf("\n Pacotes UDP: %i%"	, (udpPackets 	* 100)/totalPackets );
 		printf("\n");
 	}
 }
