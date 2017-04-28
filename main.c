@@ -34,6 +34,7 @@
   
   int totalPackets = 0;
   float arpPackets, ipv4Packets, ipv6Packets, icmpPackets, icmpv6Packets, tcpV4Packets, udpV4Packets, tcpV6Packets, udpV6Packets;
+  char * originMAC;
   //Criar uma struct para guardar um ip e a quantidade de vezes que o mesmo transmitiu/recebeu
   //Criar um array dessas structs para poder fazer a comparação das quantidades
 
@@ -59,6 +60,7 @@ int main(int argc,char *argv[])
 {
 	
     signal(SIGINT, endFunction);
+    originMAC = argv[1]; //Pegar o MAC com o ifConfig só copiar e usar
 	
     /* Criacao do socket. Todos os pacotes devem ser construidos a partir do protocolo Ethernet. */
     /* De um "man" para ver os parametros.*/
@@ -83,8 +85,20 @@ int main(int argc,char *argv[])
 		// impress?o do conteudo - exemplo Endereco Destino e Endereco Origem
 		printf("MAC Destino: %x:%x:%x:%x:%x:%x \n", buff1[0],buff1[1],buff1[2],buff1[3],buff1[4],buff1[5]);
 		printf("MAC Origem:  %x:%x:%x:%x:%x:%x \n", buff1[6],buff1[7],buff1[8],buff1[9],buff1[10],buff1[11]);
-        int type = (buff1[12] << 8) | buff1[13];
-        //printf("Tipo: %x %x -- %i \n", buff1[12], buff1[13], type);
+        
+		int type = (buff1[12] << 8) | buff1[13];
+		//printf("Tipo: %x %x -- %i \n", buff1[12], buff1[13], type);
+		
+		int transmitting = 0;
+		char *pckOriginMac = (char *)malloc(17);
+		sprintf(pckOriginMac, "%x:%x:%x:%x:%x:%x", buff1[6],buff1[7],buff1[8],buff1[9],buff1[10],buff1[11]);
+		//printf("\n\n %s -- %s", originMAC, pckOriginMac);
+		if (strcmp(originMAC, pckOriginMac) == 0) {
+			printf("Transmitting...\n");
+			transmitting = 1;
+		} else {
+			printf("Receving...\n");
+		}
 
 		switch(type) {
 			case 0x0800:
