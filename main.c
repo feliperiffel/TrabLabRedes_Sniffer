@@ -9,6 +9,7 @@
 #include <sys/ioctl.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 /* Diretorios: net, netinet, linux contem os includes que descrevem */
 /* as estruturas de dados do header dos protocolos   	  	        */
@@ -36,8 +37,29 @@
   //Criar uma struct para guardar um ip e a quantidade de vezes que o mesmo transmitiu/recebeu
   //Criar um array dessas structs para poder fazer a comparação das quantidades
 
+void endFunction(int signal) {
+	printf("\n");
+	printf("#####################################################################\n");
+	printf("\n Total de Pacotes: %i", totalPackets);
+	printf("\n Pacotes IPv4: %f%%"	, (ipv4Packets 	* 100)/totalPackets );
+	printf("\n Pacotes TCP de IPv4: %f%%"	, (tcpV4Packets 	* 100)/totalPackets );
+	printf("\n Pacotes UDP de IPv4: %f%%"	, (udpV4Packets 	* 100)/totalPackets );		
+	printf("\n Pacotes ICMP de IPv4: %f%%"	, (icmpPackets 	* 100)/totalPackets );
+	printf("\n Pacotes ARP: %f%%"	, (arpPackets 	* 100)/totalPackets );
+	printf("\n Pacotes IPv6: %f%%"	, (ipv6Packets 	* 100)/totalPackets );
+	printf("\n Pacotes ICMPv6: %f%%"	, (icmpv6Packets * 100)/totalPackets );
+	printf("\n Pacotes TCP de IPv6: %f%%"	, (tcpV6Packets * 100)/totalPackets );
+	printf("\n Pacotes UDP de IPv6: %f%%"	, (udpV6Packets * 100)/totalPackets );
+	printf("\n");
+	exit(0);
+}
+
+
 int main(int argc,char *argv[])
 {
+	
+    signal(SIGINT, endFunction);
+	
     /* Criacao do socket. Todos os pacotes devem ser construidos a partir do protocolo Ethernet. */
     /* De um "man" para ver os parametros.*/
     /* htons: converte um short (2-byte) integer para standard network byte order. */
@@ -329,17 +351,5 @@ int main(int argc,char *argv[])
 				printf("\n\n");
 				break;
 		}
-		printf("\n Total de Pacotes: %i", totalPackets);
-		printf("\n Pacotes IPv4: %f%%"	, (ipv4Packets 	* 100)/totalPackets );
-		printf("\n Pacotes TCP de IPv4: %f%%"	, (tcpV4Packets 	* 100)/totalPackets );
-		printf("\n Pacotes UDP de IPv4: %f%%"	, (udpV4Packets 	* 100)/totalPackets );		
-		printf("\n Pacotes ICMP de IPv4: %f%%"	, (icmpPackets 	* 100)/totalPackets );
-		printf("\n Pacotes ARP: %f%%"	, (arpPackets 	* 100)/totalPackets );
-		printf("\n Pacotes IPv6: %f%%"	, (ipv6Packets 	* 100)/totalPackets );
-		printf("\n Pacotes ICMPv6: %f%%"	, (icmpv6Packets * 100)/totalPackets );
-		printf("\n Pacotes TCP de IPv6: %f%%"	, (tcpV6Packets * 100)/totalPackets );
-		printf("\n Pacotes UDP de IPv6: %f%%"	, (udpV6Packets * 100)/totalPackets );
-		
-		printf("\n");
 	}
 }
